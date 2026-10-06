@@ -1,0 +1,1868 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>The Reading Room — interactive preview</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#e9e7e1;color:#202322;font:15px system-ui,sans-serif}
+main{max-width:1040px;margin:32px auto;display:grid;grid-template-columns:280px 1fr;gap:48px;padding:24px}
+aside{padding-top:20px}h1{font:36px Georgia,serif;margin:0 0 18px}p{line-height:1.6;color:#505651}
+.note{font-size:13px}nav{display:grid;gap:8px;margin:28px 0}nav button{font:inherit;text-align:left;padding:12px 16px;background:transparent;border:1px solid #aaa;cursor:pointer}
+nav button[aria-current=true]{background:#2d4d5e;color:white;border-color:#2d4d5e}
+#screen{display:block;width:100%;max-width:600px;height:auto;background:#fff;border:1px solid #8a8a83}
+#toast{min-height:55px;max-width:600px;padding:16px 0;line-height:1.5;color:#374d58}
+.hit{cursor:pointer;fill:transparent}.hit:hover{fill:#2d4d5e;fill-opacity:.07}.hit:focus{outline:none;stroke:#2d4d5e;stroke-width:2}
+@media(max-width:760px){main{display:block;margin:0;padding:16px}aside{padding-top:0}h1{font-size:28px;margin-bottom:8px}nav{display:flex;gap:6px;margin:16px 0;flex-wrap:wrap}nav button{padding:8px 10px}.intro{display:none}#screen{margin:auto}#toast{margin:auto}}
+</style>
+<main><aside><h1>The Reading Room</h1><p class="intro">Your personal library, laid out like a literary newspaper.</p><nav aria-label="Preview screens"></nav><p class="note">Interactive design preview built from the KOReader plugin’s layout. Sample books and status; plugin actions are simulated.</p><p class="note">The installable version uses your actual books, covers, collections and enabled plugins.</p></aside><section><svg id="screen" viewBox="0 0 600 800" role="group" aria-label="Kindle screen preview"></svg><div id="toast" role="status" aria-live="polite"></div></section></main>
+<script>
+const scenes={
+  "library": {
+    "items": [
+      {
+        "kind": "text",
+        "x": 20,
+        "y": 10,
+        "w": 100,
+        "h": 23,
+        "text": "23:56",
+        "size": 14,
+        "style": "sans",
+        "align": "left"
+      },
+      {
+        "kind": "text",
+        "x": 480,
+        "y": 10,
+        "w": 100,
+        "h": 23,
+        "text": "82%",
+        "size": 14,
+        "style": "sans",
+        "align": "right"
+      },
+      {
+        "kind": "text",
+        "x": 24,
+        "y": 42,
+        "w": 552,
+        "h": 50,
+        "text": "THE READING ROOM",
+        "size": 37,
+        "style": "bold",
+        "align": "center"
+      },
+      {
+        "kind": "text",
+        "x": 40,
+        "y": 94,
+        "w": 520,
+        "h": 22,
+        "text": "YOUR PERSONAL LIBRARY",
+        "size": 12,
+        "style": "sans",
+        "align": "center"
+      },
+      {
+        "kind": "rect",
+        "x": 20,
+        "y": 120,
+        "w": 560,
+        "h": 2,
+        "color": "ink"
+      },
+      {
+        "kind": "rect",
+        "x": 20,
+        "y": 125,
+        "w": 560,
+        "h": 1,
+        "color": "ink"
+      },
+      {
+        "kind": "text",
+        "x": 20,
+        "y": 142,
+        "w": 140,
+        "h": 25,
+        "text": "LIBRARY",
+        "size": 14,
+        "style": "sans",
+        "align": "center"
+      },
+      {
+        "kind": "rect",
+        "x": 40,
+        "y": 170,
+        "w": 100,
+        "h": 3,
+        "color": "accent"
+      },
+      {
+        "kind": "text",
+        "x": 160,
+        "y": 142,
+        "w": 140,
+        "h": 25,
+        "text": "COLLECTIONS",
+        "size": 14,
+        "style": "sans",
+        "align": "center"
+      },
+      {
+        "kind": "text",
+        "x": 300,
+        "y": 142,
+        "w": 140,
+        "h": 25,
+        "text": "DISCOVER",
+        "size": 14,
+        "style": "sans",
+        "align": "center"
+      },
+      {
+        "kind": "text",
+        "x": 440,
+        "y": 142,
+        "w": 140,
+        "h": 25,
+        "text": "TOOLS",
+        "size": 14,
+        "style": "sans",
+        "align": "center"
+      },
+      {
+        "kind": "rect",
+        "x": 20,
+        "y": 178,
+        "w": 560,
+        "h": 1,
+        "color": "ink"
+      },
+      {
+        "kind": "text",
+        "x": 20,
+        "y": 195,
+        "w": 560,
+        "h": 22,
+        "text": "CURRENTLY READING",
+        "size": 12,
+        "style": "sans",
+        "align": "left"
+      },
+      {
+        "kind": "cover",
+        "x": 20,
+        "y": 226,
+        "w": 165,
+        "h": 215,
+        "title": "The Dispossessed"
+      },
+      {
+        "kind": "text",
+        "x": 207,
+        "y": 225,
+        "w": 373,
+        "h": 35,
+        "text": "The Dispossessed",
+        "size": 30,
+        "style": "bold",
+        "align": "left"
+      },
+      {
+        "kind": "text",
+        "x": 207,
+        "y": 270,
+        "w": 373,
+        "h": 22,
+        "text": "Ursula K. Le Guin",
+        "size": 19,
+        "style": "serif",
+        "align": "left"
+      },
+      {
+        "kind": "text",
+        "x": 207,
+        "y": 308,
+        "w": 373,
+        "h": 25,
+        "text": "42% complete",
+        "size": 16,
+        "style": "sans",
+        "align": "left"
+      },
+      {
+        "kind": "rect",
+        "x": 207,
+        "y": 340,
+        "w": 373,
+        "h": 4,
+        "color": "light"
+      },
+      {
+        "kind": "rect",
+        "x": 207,
+        "y": 340,
+        "w": 156.66,
+        "h": 4,
+        "color": "accent"
+      },
+      {
+        "kind": "outline",
+        "x": 207,
+        "y": 358,
+        "w": 307,
+        "h": 44,
+        "color": "accent"
+      },
+      {
+        "kind": "text",
+        "x": 213,
+        "y": 370.225,
+        "w": 295,
+        "h": 36,
+        "text": "Continue reading →",
+        "size": 17,
+        "style": "sans",
+        "align": "center",
+        "color": "accent"
+      },
+      {
+        "kind": "outline",
+        "x": 526,
+        "y": 358,
+        "w": 54,
+        "h": 44,
+        "color": "ink"
+      },
+      {
+        "kind": "text",
+        "x": 532,
+        "y": 362.14285714285717,
+        "w": 42,
+        "h": 36,
+        "text": "•••",
+        "size": 17,
+        "style": "sans",
+        "align": "center",
+        "color": "ink"
+      },
+      {
+        "kind": "rect",
+        "x": 20,
+        "y": 459,
+        "w": 560,
+        "h": 1,
+        "color": "ink"
+      },
+      {
+        "kind": "text",
+        "x": 20,
+        "y": 473,
+        "w": 380,
+        "h": 36,
+        "text": "On your nightstand",
+        "size": 26,
+        "style": "bold",
+        "align": "left"
+      },
+      {
+        "kind": "text",
+        "x": 450,
+        "y": 478,
+        "w": 130,
+        "h": 28,
+        "text": "View all →",
+        "size": 16,
+        "style": "serif",
+        "align": "right"
+      },
+      {
+        "kind": "cover",
+        "x": 20,
+        "y": 524,
+        "w": 48,
+        "h": 62,
+        "title": "Piranesi"
+      },
+      {
+        "kind": "text",
+        "x": 84,
+        "y": 535.5,
+        "w": 344,
+        "h": 20,
+        "text": "Piranesi",
+        "size": 17,
+        "style": "bold",
+        "align": "left"
+      },
+      {
+        "kind": "text",
+        "x": 84,
+        "y": 559.5,
+        "w": 344,
+        "h": 15,
+        "text": "Susanna Clarke",
+        "size": 13,
+        "style": "serif",
+        "align": "left"
+      },
+      {
+        "kind": "text",
+        "x": 450,
+        "y": 543,
+        "w": 60,
+        "h": 24,
+        "text": "18%",
+        "size": 14,
+        "style": "sans",
+        "align": "right"
+      },
+      {
+        "kind": "outline",
+        "x": 526,
+        "y": 533,
+        "w": 54,
+        "h": 44,
+        "color": "ink"
+      },
+      {
+        "kind": "text",
+        "x": 532,
+        "y": 537.1428571428571,
+        "w": 42,
+        "h": 36,
+        "text": "•••",
+        "size": 17,
+        "style": "sans",
+        "align": "center",
+        "color": "ink"
+      },
+      {
+        "kind": "rect",
+        "x": 20,
+        "y": 591,
+        "w": 560,
+        "h": 1,
+        "color": "ink"
+      },
+      {
+        "kind": "cover",
+        "x": 20,
+        "y": 596,
+        "w": 48,
+        "h": 62,
+        "title": "A Psalm for the Wild-Built"
+      },
+      {
+        "kind": "text",
+        "x": 84,
+        "y": 607.5,
+        "w": 344,
+        "h": 20,
+        "text": "A Psalm for the Wild-Built",
+        "size": 17,
+        "style": "bold",
+        "align": "left"
+      },
+      {
+        "kind": "text",
+        "x": 84,
+        "y": 631.5,
+        "w": 344,
+        "h": 15,
+        "text": "Becky Chambers",
+        "size": 13,
+        "style": "serif",
+        "align": "left"
+      },
+      {
+        "kind": "text",
+        "x": 450,
+        "y": 615,
+        "w": 60,
+        "h": 24,
+        "text": "67%",
+        "size": 14,
+        "style": "sans",
+        "align": "right"
+      },
+      {
+        "kind": "outline",
+        "x": 526,
+        "y": 605,
+        "w": 54,
+        "h": 44,
+        "color": "ink"
+      },
+      {
+        "kind": "text",
+        "x": 532,
+        "y": 609.1428571428571,
+        "w": 42,
+        "h": 36,
+        "text": "•••",
+        "size": 17,
+        "style": "sans",
+        "align": "center",
+        "color": "ink"
+      },
+      {
+        "kind": "rect",
+        "x": 20,
+        "y": 663,
+        "w": 560,
+        "h": 1,
+        "color": "ink"
+      },
+      {
+        "kind": "cover",
+        "x": 20,
+        "y": 668,
+        "w": 48,
+        "h": 62,
+        "title": "The Left Hand of Darkness"
+      },
+      {
+        "kind": "text",
+        "x": 84,
+        "y": 679.5,
+        "w": 344,
+        "h": 20,
+        "text": "The Left Hand of Darkness",
+        "size": 17,
+        "style": "bold",
+        "align": "left"
+      },
+      {
+        "kind": "text",
+        "x": 84,
+        "y": 703.5,
+        "w": 344,
+        "h": 15,
+        "text": "Ursula K. Le Guin",
+        "size": 13,
+        "style": "serif",
+        "align": "left"
+      },
+      {
+        "kind": "text",
+        "x": 450,
+        "y": 687,
+        "w": 60,
+        "h": 24,
+        "text": "12%",
+        "size": 14,
+        "style": "sans",
+        "align": "right"
+      },
+      {
+        "kind": "outline",
+        "x": 526,
+        "y": 677,
+        "w": 54,
+        "h": 44,
+        "color": "ink"
+      },
+      {
+        "kind": "text",
+        "x": 532,
+        "y": 681.1428571428571,
+        "w": 42,
+        "h": 36,
+        "text": "•••",
+        "size": 17,
+        "style": "sans",
+        "align": "center",
+        "color": "ink"
+      },
+      {
+        "kind": "rect",
+        "x": 20,
+        "y": 745,
+        "w": 560,
+        "h": 2,
+        "color": "ink"
+      },
+      {
+        "kind": "rect",
+        "x": 20,
+        "y": 750,
+        "w": 560,
+        "h": 1,
+        "color": "ink"
+      },
+      {
+        "kind": "text",
+        "x": 20,
+        "y": 767,
+        "w": 180,
+        "h": 25,
+        "text": "Browse files",
+        "size": 14,
+        "style": "sans",
+        "align": "left"
+      },
+      {
+        "kind": "text",
+        "x": 220,
+        "y": 767,
+        "w": 160,
+        "h": 25,
+        "text": "Refresh",
+        "size": 14,
+        "style": "sans",
+        "align": "center"
+      },
+      {
+        "kind": "text",
+        "x": 400,
+        "y": 767,
+        "w": 180,
+        "h": 25,
+        "text": "Search →",
+        "size": 14,
+        "style": "sans",
+        "align": "right"
+      }
+    ],
+    "targets": [
+      {
+        "x": 20,
+        "y": 130,
+        "w": 140,
+        "h": 44
+      },
+      {
+        "x": 160,
+        "y": 130,
+        "w": 140,
+        "h": 44
+      },
+      {
+        "x": 300,
+        "y": 130,
+        "w": 140,
+        "h": 44
+      },
+      {
+        "x": 440,
+        "y": 130,
+        "w": 140,
+        "h": 44
+      },
+      {
+        "x": 207,
+        "y": 358,
+        "w": 307,
+        "h": 44
+      },
+      {
+        "x": 526,
+        "y": 358,
+        "w": 54,
+        "h": 44
+      },
+      {
+        "x": 440,
+        "y": 465,
+        "w": 140,
+        "h": 44
+      },
+      {
+        "x": 20,
+        "y": 519,
+        "w": 494,
+        "h": 72
+      },
+      {
+        "x": 526,
+        "y": 533,
+        "w": 54,
+        "h": 44
+      },
+      {
+        "x": 20,
+        "y": 591,
+        "w": 494,
+        "h": 72
+      },
+      {
+        "x": 526,
+        "y": 605,
+        "w": 54,
+        "h": 44
+      },
+      {
+        "x": 20,
+        "y": 663,
+        "w": 494,
+        "h": 72
+      },
+      {
+        "x": 526,
+        "y": 677,
+        "w": 54,
+        "h": 44
+      },
+      {
+        "x": 20,
+        "y": 753,
+        "w": 180,
+        "h": 47
+      },
+      {
+        "x": 220,
+        "y": 753,
+        "w": 160,
+        "h": 47
+      },
+      {
+        "x": 400,
+        "y": 753,
+        "w": 180,
+        "h": 47
+      }
+    ]
+  },
+  "collections": {
+    "items": [
+      {
+        "kind": "text",
+        "x": 20,
+        "y": 10,
+        "w": 100,
+        "h": 23,
+        "text": "23:56",
+        "size": 14,
+        "style": "sans",
+        "align": "left"
+      },
+      {
+        "kind": "text",
+        "x": 480,
+        "y": 10,
+        "w": 100,
+        "h": 23,
+        "text": "82%",
+        "size": 14,
+        "style": "sans",
+        "align": "right"
+      },
+      {
+        "kind": "text",
+        "x": 24,
+        "y": 42,
+        "w": 552,
+        "h": 50,
+        "text": "THE READING ROOM",
+        "size": 37,
+        "style": "bold",
+        "align": "center"
+      },
+      {
+        "kind": "text",
+        "x": 40,
+        "y": 94,
+        "w": 520,
+        "h": 22,
+        "text": "YOUR PERSONAL LIBRARY",
+        "size": 12,
+        "style": "sans",
+        "align": "center"
+      },
+      {
+        "kind": "rect",
+        "x": 20,
+        "y": 120,
+        "w": 560,
+        "h": 2,
+        "color": "ink"
+      },
+      {
+        "kind": "rect",
+        "x": 20,
+        "y": 125,
+        "w": 560,
+        "h": 1,
+        "color": "ink"
+      },
+      {
+        "kind": "text",
+        "x": 20,
+        "y": 142,
+        "w": 140,
+        "h": 25,
+        "text": "LIBRARY",
+        "size": 14,
+        "style": "sans",
+        "align": "center"
+      },
+      {
+        "kind": "text",
+        "x": 160,
+        "y": 142,
+        "w": 140,
+        "h": 25,
+        "text": "COLLECTIONS",
+        "size": 14,
+        "style": "sans",
+        "align": "center"
+      },
+      {
+        "kind": "rect",
+        "x": 180,
+        "y": 170,
+        "w": 100,
+        "h": 3,
+        "color": "accent"
+      },
+      {
+        "kind": "text",
+        "x": 300,
+        "y": 142,
+        "w": 140,
+        "h": 25,
+        "text": "DISCOVER",
+        "size": 14,
+        "style": "sans",
+        "align": "center"
+      },
+      {
+        "kind": "text",
+        "x": 440,
+        "y": 142,
+        "w": 140,
+        "h": 25,
+        "text": "TOOLS",
+        "size": 14,
+        "style": "sans",
+        "align": "center"
+      },
+      {
+        "kind": "rect",
+        "x": 20,
+        "y": 178,
+        "w": 560,
+        "h": 1,
+        "color": "ink"
+      },
+      {
+        "kind": "text",
+        "x": 20,
+        "y": 201,
+        "w": 560,
+        "h": 60,
+        "text": "Your shelves",
+        "size": 35,
+        "style": "bold",
+        "align": "left"
+      },
+      {
+        "kind": "text",
+        "x": 20,
+        "y": 266,
+        "w": 560,
+        "h": 35,
+        "text": "A section for every reading mood.",
+        "size": 19,
+        "style": "serif",
+        "align": "left"
+      },
+      {
+        "kind": "rect",
+        "x": 20,
+        "y": 322,
+        "w": 560,
+        "h": 1,
+        "color": "ink"
+      },
+      {
+        "kind": "text",
+        "x": 24,
+        "y": 336,
+        "w": 400,
+        "h": 37,
+        "text": "Finished",
+        "size": 25,
+        "style": "serif",
+        "align": "left"
+      },
+      {
+        "kind": "text",
+        "x": 430,
+        "y": 342,
+        "w": 146,
+        "h": 27,
+        "text": "0 books →",
+        "size": 15,
+        "style": "sans",
+        "align": "right"
+      },
+      {
+        "kind": "rect",
+        "x": 20,
+        "y": 389,
+        "w": 560,
+        "h": 1,
+        "color": "ink"
+      },
+      {
+        "kind": "text",
+        "x": 24,
+        "y": 403,
+        "w": 400,
+        "h": 37,
+        "text": "On my nightstand",
+        "size": 25,
+        "style": "serif",
+        "align": "left"
+      },
+      {
+        "kind": "text",
+        "x": 430,
+        "y": 409,
+        "w": 146,
+        "h": 27,
+        "text": "1 books →",
+        "size": 15,
+        "style": "sans",
+        "align": "right"
+      },
+      {
+        "kind": "rect",
+        "x": 20,
+        "y": 456,
+        "w": 560,
+        "h": 1,
+        "color": "ink"
+      },
+      {
+        "kind": "text",
+        "x": 24,
+        "y": 470,
+        "w": 400,
+        "h": 37,
+        "text": "Science fiction",
+        "size": 25,
+        "style": "serif",
+        "align": "left"
+      },
+      {
+        "kind": "text",
+        "x": 430,
+        "y": 476,
+        "w": 146,
+        "h": 27,
+        "text": "2 books →",
+        "size": 15,
+        "style": "sans",
+        "align": "right"
+      },
+      {
+        "kind": "outline",
+        "x": 20,
+        "y": 674,
+        "w": 560,
+        "h": 44,
+        "color": "ink"
+      },
+      {
+        "kind": "text",
+        "x": 26,
+        "y": 686.225,
+        "w": 548,
+        "h": 36,
+        "text": "Manage all collections →",
+        "size": 17,
+        "style": "sans",
+        "align": "center",
+        "color": "ink"
+      },
+      {
+        "kind": "rect",
+        "x": 20,
+        "y": 745,
+        "w": 560,
+        "h": 2,
+        "color": "ink"
+      },
+      {
+        "kind": "rect",
+        "x": 20,
+        "y": 750,
+        "w": 560,
+        "h": 1,
+        "color": "ink"
+      },
+      {
+        "kind": "text",
+        "x": 20,
+        "y": 767,
+        "w": 180,
+        "h": 25,
+        "text": "Browse files",
+        "size": 14,
+        "style": "sans",
+        "align": "left"
+      },
+      {
+        "kind": "text",
+        "x": 220,
+        "y": 767,
+        "w": 160,
+        "h": 25,
+        "text": "Refresh",
+        "size": 14,
+        "style": "sans",
+        "align": "center"
+      },
+      {
+        "kind": "text",
+        "x": 400,
+        "y": 767,
+        "w": 180,
+        "h": 25,
+        "text": "Search →",
+        "size": 14,
+        "style": "sans",
+        "align": "right"
+      }
+    ],
+    "targets": [
+      {
+        "x": 20,
+        "y": 130,
+        "w": 140,
+        "h": 44
+      },
+      {
+        "x": 160,
+        "y": 130,
+        "w": 140,
+        "h": 44
+      },
+      {
+        "x": 300,
+        "y": 130,
+        "w": 140,
+        "h": 44
+      },
+      {
+        "x": 440,
+        "y": 130,
+        "w": 140,
+        "h": 44
+      },
+      {
+        "x": 20,
+        "y": 323,
+        "w": 560,
+        "h": 65
+      },
+      {
+        "x": 20,
+        "y": 390,
+        "w": 560,
+        "h": 65
+      },
+      {
+        "x": 20,
+        "y": 457,
+        "w": 560,
+        "h": 65
+      },
+      {
+        "x": 20,
+        "y": 674,
+        "w": 560,
+        "h": 44
+      },
+      {
+        "x": 20,
+        "y": 753,
+        "w": 180,
+        "h": 47
+      },
+      {
+        "x": 220,
+        "y": 753,
+        "w": 160,
+        "h": 47
+      },
+      {
+        "x": 400,
+        "y": 753,
+        "w": 180,
+        "h": 47
+      }
+    ]
+  },
+  "discover": {
+    "items": [
+      {
+        "kind": "text",
+        "x": 20,
+        "y": 10,
+        "w": 100,
+        "h": 23,
+        "text": "23:56",
+        "size": 14,
+        "style": "sans",
+        "align": "left"
+      },
+      {
+        "kind": "text",
+        "x": 480,
+        "y": 10,
+        "w": 100,
+        "h": 23,
+        "text": "82%",
+        "size": 14,
+        "style": "sans",
+        "align": "right"
+      },
+      {
+        "kind": "text",
+        "x": 24,
+        "y": 42,
+        "w": 552,
+        "h": 50,
+        "text": "THE READING ROOM",
+        "size": 37,
+        "style": "bold",
+        "align": "center"
+      },
+      {
+        "kind": "text",
+        "x": 40,
+        "y": 94,
+        "w": 520,
+        "h": 22,
+        "text": "YOUR PERSONAL LIBRARY",
+        "size": 12,
+        "style": "sans",
+        "align": "center"
+      },
+      {
+        "kind": "rect",
+        "x": 20,
+        "y": 120,
+        "w": 560,
+        "h": 2,
+        "color": "ink"
+      },
+      {
+        "kind": "rect",
+        "x": 20,
+        "y": 125,
+        "w": 560,
+        "h": 1,
+        "color": "ink"
+      },
+      {
+        "kind": "text",
+        "x": 20,
+        "y": 142,
+        "w": 140,
+        "h": 25,
+        "text": "LIBRARY",
+        "size": 14,
+        "style": "sans",
+        "align": "center"
+      },
+      {
+        "kind": "text",
+        "x": 160,
+        "y": 142,
+        "w": 140,
+        "h": 25,
+        "text": "COLLECTIONS",
+        "size": 14,
+        "style": "sans",
+        "align": "center"
+      },
+      {
+        "kind": "text",
+        "x": 300,
+        "y": 142,
+        "w": 140,
+        "h": 25,
+        "text": "DISCOVER",
+        "size": 14,
+        "style": "sans",
+        "align": "center"
+      },
+      {
+        "kind": "rect",
+        "x": 320,
+        "y": 170,
+        "w": 100,
+        "h": 3,
+        "color": "accent"
+      },
+      {
+        "kind": "text",
+        "x": 440,
+        "y": 142,
+        "w": 140,
+        "h": 25,
+        "text": "TOOLS",
+        "size": 14,
+        "style": "sans",
+        "align": "center"
+      },
+      {
+        "kind": "rect",
+        "x": 20,
+        "y": 178,
+        "w": 560,
+        "h": 1,
+        "color": "ink"
+      },
+      {
+        "kind": "text",
+        "x": 20,
+        "y": 201,
+        "w": 560,
+        "h": 60,
+        "text": "Discover",
+        "size": 37,
+        "style": "bold",
+        "align": "left"
+      },
+      {
+        "kind": "text",
+        "x": 20,
+        "y": 265,
+        "w": 560,
+        "h": 35,
+        "text": "Find your next read",
+        "size": 22,
+        "style": "serif",
+        "align": "left"
+      },
+      {
+        "kind": "outline",
+        "x": 20,
+        "y": 312,
+        "w": 560,
+        "h": 44,
+        "color": "ink"
+      },
+      {
+        "kind": "text",
+        "x": 26,
+        "y": 324.225,
+        "w": 548,
+        "h": 36,
+        "text": "Search your library →",
+        "size": 17,
+        "style": "sans",
+        "align": "center",
+        "color": "ink"
+      },
+      {
+        "kind": "text",
+        "x": 20,
+        "y": 380,
+        "w": 560,
+        "h": 25,
+        "text": "Z-LIBRARY",
+        "size": 13,
+        "style": "sans",
+        "align": "left"
+      },
+      {
+        "kind": "outline",
+        "x": 20,
+        "y": 414,
+        "w": 560,
+        "h": 44,
+        "color": "accent"
+      },
+      {
+        "kind": "text",
+        "x": 26,
+        "y": 426.225,
+        "w": 548,
+        "h": 36,
+        "text": "Search Z-library →",
+        "size": 17,
+        "style": "sans",
+        "align": "center",
+        "color": "accent"
+      },
+      {
+        "kind": "outline",
+        "x": 20,
+        "y": 474,
+        "w": 270,
+        "h": 44,
+        "color": "ink"
+      },
+      {
+        "kind": "text",
+        "x": 26,
+        "y": 486.225,
+        "w": 258,
+        "h": 36,
+        "text": "Recommended →",
+        "size": 17,
+        "style": "sans",
+        "align": "center",
+        "color": "ink"
+      },
+      {
+        "kind": "outline",
+        "x": 310,
+        "y": 474,
+        "w": 270,
+        "h": 44,
+        "color": "ink"
+      },
+      {
+        "kind": "text",
+        "x": 316,
+        "y": 486.225,
+        "w": 258,
+        "h": 36,
+        "text": "Most popular →",
+        "size": 17,
+        "style": "sans",
+        "align": "center",
+        "color": "ink"
+      },
+      {
+        "kind": "outline",
+        "x": 20,
+        "y": 534,
+        "w": 560,
+        "h": 44,
+        "color": "ink"
+      },
+      {
+        "kind": "text",
+        "x": 26,
+        "y": 546.225,
+        "w": 548,
+        "h": 36,
+        "text": "My books →",
+        "size": 17,
+        "style": "sans",
+        "align": "center",
+        "color": "ink"
+      },
+      {
+        "kind": "rect",
+        "x": 20,
+        "y": 602,
+        "w": 560,
+        "h": 2,
+        "color": "ink"
+      },
+      {
+        "kind": "rect",
+        "x": 20,
+        "y": 607,
+        "w": 560,
+        "h": 1,
+        "color": "ink"
+      },
+      {
+        "kind": "text",
+        "x": 20,
+        "y": 622,
+        "w": 560,
+        "h": 37,
+        "text": "Archive of Our Own",
+        "size": 25,
+        "style": "bold",
+        "align": "left"
+      },
+      {
+        "kind": "text",
+        "x": 20,
+        "y": 662,
+        "w": 560,
+        "h": 22,
+        "text": "Search, downloads and work updates",
+        "size": 13,
+        "style": "sans",
+        "align": "left"
+      },
+      {
+        "kind": "outline",
+        "x": 20,
+        "y": 693,
+        "w": 560,
+        "h": 44,
+        "color": "accent"
+      },
+      {
+        "kind": "text",
+        "x": 26,
+        "y": 705.225,
+        "w": 548,
+        "h": 36,
+        "text": "Browse AO3 →",
+        "size": 17,
+        "style": "sans",
+        "align": "center",
+        "color": "accent"
+      },
+      {
+        "kind": "rect",
+        "x": 20,
+        "y": 745,
+        "w": 560,
+        "h": 2,
+        "color": "ink"
+      },
+      {
+        "kind": "rect",
+        "x": 20,
+        "y": 750,
+        "w": 560,
+        "h": 1,
+        "color": "ink"
+      },
+      {
+        "kind": "text",
+        "x": 20,
+        "y": 767,
+        "w": 180,
+        "h": 25,
+        "text": "Browse files",
+        "size": 14,
+        "style": "sans",
+        "align": "left"
+      },
+      {
+        "kind": "text",
+        "x": 220,
+        "y": 767,
+        "w": 160,
+        "h": 25,
+        "text": "Refresh",
+        "size": 14,
+        "style": "sans",
+        "align": "center"
+      },
+      {
+        "kind": "text",
+        "x": 400,
+        "y": 767,
+        "w": 180,
+        "h": 25,
+        "text": "Search →",
+        "size": 14,
+        "style": "sans",
+        "align": "right"
+      }
+    ],
+    "targets": [
+      {
+        "x": 20,
+        "y": 130,
+        "w": 140,
+        "h": 44
+      },
+      {
+        "x": 160,
+        "y": 130,
+        "w": 140,
+        "h": 44
+      },
+      {
+        "x": 300,
+        "y": 130,
+        "w": 140,
+        "h": 44
+      },
+      {
+        "x": 440,
+        "y": 130,
+        "w": 140,
+        "h": 44
+      },
+      {
+        "x": 20,
+        "y": 312,
+        "w": 560,
+        "h": 44
+      },
+      {
+        "x": 20,
+        "y": 414,
+        "w": 560,
+        "h": 44
+      },
+      {
+        "x": 20,
+        "y": 474,
+        "w": 270,
+        "h": 44
+      },
+      {
+        "x": 310,
+        "y": 474,
+        "w": 270,
+        "h": 44
+      },
+      {
+        "x": 20,
+        "y": 534,
+        "w": 560,
+        "h": 44
+      },
+      {
+        "x": 20,
+        "y": 693,
+        "w": 560,
+        "h": 44
+      },
+      {
+        "x": 20,
+        "y": 753,
+        "w": 180,
+        "h": 47
+      },
+      {
+        "x": 220,
+        "y": 753,
+        "w": 160,
+        "h": 47
+      },
+      {
+        "x": 400,
+        "y": 753,
+        "w": 180,
+        "h": 47
+      }
+    ]
+  },
+  "tools": {
+    "items": [
+      {
+        "kind": "text",
+        "x": 20,
+        "y": 10,
+        "w": 100,
+        "h": 23,
+        "text": "23:56",
+        "size": 14,
+        "style": "sans",
+        "align": "left"
+      },
+      {
+        "kind": "text",
+        "x": 480,
+        "y": 10,
+        "w": 100,
+        "h": 23,
+        "text": "82%",
+        "size": 14,
+        "style": "sans",
+        "align": "right"
+      },
+      {
+        "kind": "text",
+        "x": 24,
+        "y": 42,
+        "w": 552,
+        "h": 50,
+        "text": "THE READING ROOM",
+        "size": 37,
+        "style": "bold",
+        "align": "center"
+      },
+      {
+        "kind": "text",
+        "x": 40,
+        "y": 94,
+        "w": 520,
+        "h": 22,
+        "text": "YOUR PERSONAL LIBRARY",
+        "size": 12,
+        "style": "sans",
+        "align": "center"
+      },
+      {
+        "kind": "rect",
+        "x": 20,
+        "y": 120,
+        "w": 560,
+        "h": 2,
+        "color": "ink"
+      },
+      {
+        "kind": "rect",
+        "x": 20,
+        "y": 125,
+        "w": 560,
+        "h": 1,
+        "color": "ink"
+      },
+      {
+        "kind": "text",
+        "x": 20,
+        "y": 142,
+        "w": 140,
+        "h": 25,
+        "text": "LIBRARY",
+        "size": 14,
+        "style": "sans",
+        "align": "center"
+      },
+      {
+        "kind": "text",
+        "x": 160,
+        "y": 142,
+        "w": 140,
+        "h": 25,
+        "text": "COLLECTIONS",
+        "size": 14,
+        "style": "sans",
+        "align": "center"
+      },
+      {
+        "kind": "text",
+        "x": 300,
+        "y": 142,
+        "w": 140,
+        "h": 25,
+        "text": "DISCOVER",
+        "size": 14,
+        "style": "sans",
+        "align": "center"
+      },
+      {
+        "kind": "text",
+        "x": 440,
+        "y": 142,
+        "w": 140,
+        "h": 25,
+        "text": "TOOLS",
+        "size": 14,
+        "style": "sans",
+        "align": "center"
+      },
+      {
+        "kind": "rect",
+        "x": 460,
+        "y": 170,
+        "w": 100,
+        "h": 3,
+        "color": "accent"
+      },
+      {
+        "kind": "rect",
+        "x": 20,
+        "y": 178,
+        "w": 560,
+        "h": 1,
+        "color": "ink"
+      },
+      {
+        "kind": "text",
+        "x": 20,
+        "y": 201,
+        "w": 560,
+        "h": 60,
+        "text": "Library services",
+        "size": 34,
+        "style": "bold",
+        "align": "left"
+      },
+      {
+        "kind": "text",
+        "x": 20,
+        "y": 278,
+        "w": 560,
+        "h": 25,
+        "text": "BUDDYSYNC · BOOKS & NOTES",
+        "size": 13,
+        "style": "sans",
+        "align": "left"
+      },
+      {
+        "kind": "text",
+        "x": 20,
+        "y": 313,
+        "w": 560,
+        "h": 39,
+        "text": "Send your reading shelf to X3.",
+        "size": 21,
+        "style": "serif",
+        "align": "left"
+      },
+      {
+        "kind": "outline",
+        "x": 20,
+        "y": 366,
+        "w": 270,
+        "h": 44,
+        "color": "ink"
+      },
+      {
+        "kind": "text",
+        "x": 26,
+        "y": 378.225,
+        "w": 258,
+        "h": 36,
+        "text": "Sync active shelf →",
+        "size": 17,
+        "style": "sans",
+        "align": "center",
+        "color": "ink"
+      },
+      {
+        "kind": "outline",
+        "x": 310,
+        "y": 366,
+        "w": 270,
+        "h": 44,
+        "color": "ink"
+      },
+      {
+        "kind": "text",
+        "x": 316,
+        "y": 378.225,
+        "w": 258,
+        "h": 36,
+        "text": "BuddySync settings",
+        "size": 17,
+        "style": "sans",
+        "align": "center",
+        "color": "ink"
+      },
+      {
+        "kind": "rect",
+        "x": 20,
+        "y": 430,
+        "w": 560,
+        "h": 1,
+        "color": "ink"
+      },
+      {
+        "kind": "text",
+        "x": 20,
+        "y": 450,
+        "w": 560,
+        "h": 25,
+        "text": "KOSYNC · READING POSITION",
+        "size": 13,
+        "style": "sans",
+        "align": "left"
+      },
+      {
+        "kind": "text",
+        "x": 20,
+        "y": 488,
+        "w": 560,
+        "h": 37,
+        "text": "Progress sync belongs to the open book.",
+        "size": 21,
+        "style": "serif",
+        "align": "left"
+      },
+      {
+        "kind": "outline",
+        "x": 20,
+        "y": 541,
+        "w": 560,
+        "h": 44,
+        "color": "ink"
+      },
+      {
+        "kind": "text",
+        "x": 26,
+        "y": 553.225,
+        "w": 548,
+        "h": 36,
+        "text": "Open book & sync controls →",
+        "size": 17,
+        "style": "sans",
+        "align": "center",
+        "color": "ink"
+      },
+      {
+        "kind": "text",
+        "x": 20,
+        "y": 591,
+        "w": 560,
+        "h": 18,
+        "text": "Use one plugin for automatic progress updates.",
+        "size": 11,
+        "style": "sans",
+        "align": "left"
+      },
+      {
+        "kind": "rect",
+        "x": 20,
+        "y": 612,
+        "w": 560,
+        "h": 1,
+        "color": "ink"
+      },
+      {
+        "kind": "text",
+        "x": 20,
+        "y": 632,
+        "w": 560,
+        "h": 35,
+        "text": "Reading Room settings",
+        "size": 24,
+        "style": "bold",
+        "align": "left"
+      },
+      {
+        "kind": "outline",
+        "x": 20,
+        "y": 684,
+        "w": 560,
+        "h": 44,
+        "color": "ink"
+      },
+      {
+        "kind": "text",
+        "x": 26,
+        "y": 696.225,
+        "w": 548,
+        "h": 36,
+        "text": "Home screen & covers →",
+        "size": 17,
+        "style": "sans",
+        "align": "center",
+        "color": "ink"
+      },
+      {
+        "kind": "rect",
+        "x": 20,
+        "y": 745,
+        "w": 560,
+        "h": 2,
+        "color": "ink"
+      },
+      {
+        "kind": "rect",
+        "x": 20,
+        "y": 750,
+        "w": 560,
+        "h": 1,
+        "color": "ink"
+      },
+      {
+        "kind": "text",
+        "x": 20,
+        "y": 767,
+        "w": 180,
+        "h": 25,
+        "text": "Browse files",
+        "size": 14,
+        "style": "sans",
+        "align": "left"
+      },
+      {
+        "kind": "text",
+        "x": 220,
+        "y": 767,
+        "w": 160,
+        "h": 25,
+        "text": "Refresh",
+        "size": 14,
+        "style": "sans",
+        "align": "center"
+      },
+      {
+        "kind": "text",
+        "x": 400,
+        "y": 767,
+        "w": 180,
+        "h": 25,
+        "text": "Search →",
+        "size": 14,
+        "style": "sans",
+        "align": "right"
+      }
+    ],
+    "targets": [
+      {
+        "x": 20,
+        "y": 130,
+        "w": 140,
+        "h": 44
+      },
+      {
+        "x": 160,
+        "y": 130,
+        "w": 140,
+        "h": 44
+      },
+      {
+        "x": 300,
+        "y": 130,
+        "w": 140,
+        "h": 44
+      },
+      {
+        "x": 440,
+        "y": 130,
+        "w": 140,
+        "h": 44
+      },
+      {
+        "x": 20,
+        "y": 366,
+        "w": 270,
+        "h": 44
+      },
+      {
+        "x": 310,
+        "y": 366,
+        "w": 270,
+        "h": 44
+      },
+      {
+        "x": 20,
+        "y": 541,
+        "w": 560,
+        "h": 44
+      },
+      {
+        "x": 20,
+        "y": 684,
+        "w": 560,
+        "h": 44
+      },
+      {
+        "x": 20,
+        "y": 753,
+        "w": 180,
+        "h": 47
+      },
+      {
+        "x": 220,
+        "y": 753,
+        "w": 160,
+        "h": 47
+      },
+      {
+        "x": 400,
+        "y": 753,
+        "w": 180,
+        "h": 47
+      }
+    ]
+  }
+};
+const sections=['library','collections','discover','tools'];
+const titles=['Library','Collections','Discover','Tools'];
+const colors={ink:'#171b1b',accent:'#2d4d5e',light:'#d8d9d6',muted:'#747672'};
+let active='library';const svg=document.querySelector('#screen');const ns='http://www.w3.org/2000/svg';
+function element(tag,attrs){const n=document.createElementNS(ns,tag);for(const [k,v]of Object.entries(attrs))n.setAttribute(k,v);return n}
+function textBox(item){const f=element('foreignObject',{x:item.x,y:item.y,width:item.w,height:item.h});const d=document.createElementNS('http://www.w3.org/1999/xhtml','div');d.style.cssText=`height:100%;overflow:hidden;font:${item.style==='bold'?'700':'400'} ${item.size}px ${item.style==='sans'?'Arial,sans-serif':'Georgia,serif'};line-height:1.15;text-align:${item.align||'left'};color:${colors[item.color||'ink']};white-space:pre-wrap;overflow-wrap:anywhere`;d.textContent=item.text;f.append(d);svg.append(f)}
+function action(t){if(t.y===130){show(sections[Math.round((t.x-20)/140)]);return}if(t.y===753&&t.x===400){show('discover');return}if(t.y===753&&t.x===220){show(active);toast('Preview refreshed.');return}if(active==='library'&&t.x===526){toast('Book actions: Read · Book information · Add to collection · Send to X3 · Send notes · Progress sync.');return}if(active==='library'&&t.x===526){toast('Book actions: Read · Book information · Add to collection · Send to X3 · Send notes · Progress sync.');return}if(active==='library'&&t.x===207){toast('On your Kindle, Continue reading opens the book at its saved position.');return}if(active==='discover'&&t.y===693){toast('Opens AO3 Downloader for search, downloads, downloaded works and work updates. This preview does not connect to AO3.');return}if(active==='discover'){toast('This opens the corresponding search or browsing screen in the installed plugin. No network request is made in this preview.');return}if(active==='tools'){toast('This opens the installed plugin’s controls. Sync is never run by this preview.');return}if(active==='collections'){toast('This opens your collection in KOReader.');return}toast('This opens KOReader’s book or file browser on your device.')}
+function toast(s){document.querySelector('#toast').textContent=s}
+function show(section){active=section;svg.replaceChildren();for(const item of scenes[section].items){if(item.kind==='text'){textBox(item)}else if(item.kind==='cover'){svg.append(element('rect',{x:item.x,y:item.y,width:item.w,height:item.h,fill:'#f0eee8',stroke:'#646961','stroke-width':1}));textBox({x:item.x+4,y:item.y+6,w:item.w-8,h:item.h-12,text:item.w<60?'BOOK':item.title,size:item.w<60?9:14,style:'serif',align:'center'})}else{svg.append(element('rect',{x:item.x,y:item.y,width:item.w,height:item.h,fill:item.kind==='outline'?'none':colors[item.color],stroke:item.kind==='outline'?colors[item.color]:'none','stroke-width':1}))}}for(const t of scenes[section].targets){const label=scenes[section].items.find(i=>i.kind==='text'&&i.x>=t.x&&i.x<t.x+t.w&&i.y>=t.y&&i.y<t.y+t.h)?.text||'Open';const hit=element('rect',{...t,width:t.w,height:t.h,class:'hit',tabindex:0,role:'button','aria-label':label});hit.addEventListener('click',()=>action(t));hit.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();action(t)}});svg.append(hit)}document.querySelectorAll('nav button').forEach(b=>b.setAttribute('aria-current',b.dataset.section===section));toast('')}
+sections.forEach((s,i)=>{const b=document.createElement('button');b.textContent=titles[i];b.dataset.section=s;b.onclick=()=>show(s);document.querySelector('nav').append(b)});show('library');
+</script></html>
